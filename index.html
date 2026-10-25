@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e1116">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Torre de Comando</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark'}catch{}</script>
+<style>
+:root{--bg:#0e1116;--sf:#171b22;--s2:#1f242d;--bd:#454d5b;--tx:#e8eaed;--mt:#c3cad6;--ac:#f2b84b;--ok:#4ac28a;--er:#ef6b6b;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+header{padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+h1{font-size:17px;margin:0;font-weight:650}
+h2{font-size:20px;margin:22px 0 8px;font-weight:700;color:var(--tx)}
+main{flex:1;overflow-y:auto;padding:12px 16px 24px;max-width:900px;width:100%;margin:0 auto}
+nav{display:flex;border-top:1px solid var(--bd);background:var(--sf);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;min-height:66px;background:none;border:0;color:var(--mt);font:inherit;font-size:14px;line-height:1.25}
+nav button.on{color:var(--ac);box-shadow:inset 0 2px 0 var(--ac)}
+.tab{display:none}.tab.on{display:block}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+textarea,input,select{width:100%;background:var(--s2);color:var(--tx);border:1px solid var(--bd);border-radius:10px;padding:13px 14px;font:inherit;font-size:17px;margin:4px 0 6px}
+textarea{min-height:96px;resize:vertical}
+label{font-size:17px;font-weight:600;color:var(--tx);display:block;margin-top:6px}.help{font-size:15px;color:var(--mt);margin:0 0 12px}
+.b{min-height:56px;border-radius:12px;border:2px solid var(--bd);background:var(--s2);color:var(--tx);font:inherit;font-size:17px;font-weight:700;padding:0 14px;width:100%;margin:4px 0}
+.p{background:var(--ac);color:#1a1405;border-color:var(--ac)}
+.sm{width:auto;min-height:46px;font-size:15px;margin:4px 6px 0 0}
+button:disabled{opacity:.5}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sw{position:relative;width:48px;height:28px;flex:none}
+.sw input{opacity:0;position:absolute;inset:0;margin:0;width:100%;height:100%;z-index:2}
+.sw i{position:absolute;inset:0;background:var(--s2);border:1px solid var(--bd);border-radius:20px;transition:.2s}
+.sw i:after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--mt);transition:.2s}
+.sw input:checked+i{background:var(--ac);border-color:var(--ac)}
+.sw input:checked+i:after{transform:translateX(20px);background:#1a1405}
+.res{white-space:pre-wrap;word-break:break-word;font-size:16px;margin-top:6px;max-height:320px;overflow:auto}
+.err{color:var(--er)}.mt{color:var(--mt);font-size:15px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px}
+.chip{flex:none;border:1px solid var(--bd);border-radius:20px;padding:10px 16px;font:inherit;font-size:15px;background:var(--sf);color:var(--tx)}
+.chip.on{border-color:var(--ac);color:var(--ac)}
+pre{white-space:pre-wrap;word-break:break-word;font-size:12.5px;background:var(--s2);border-radius:10px;padding:10px;max-height:320px;overflow:auto;margin:8px 0}
+#lock{position:fixed;inset:0;background:var(--bg);z-index:9;display:flex;padding:24px}
+#lock>div{width:100%;max-width:380px;margin:auto}
+#toast{position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));max-width:600px;margin:auto;background:var(--s2);border:2px solid var(--bd);border-radius:12px;padding:16px;font-size:17px;font-weight:600;display:none;z-index:10}
+.guide{background:linear-gradient(135deg,#222b3a,#171b22);border:2px solid var(--ac);border-radius:14px;padding:16px;margin-bottom:14px}
+.steps{list-style:none;padding:0;margin:0}.steps li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--bd)}.steps .help{margin:2px 0 0}
+.go{min-height:66px;font-size:20px;box-shadow:0 4px 16px rgba(242,184,75,.3)}
+summary{font-size:18px;font-weight:700;padding:12px 0;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--tx);outline-offset:2px}
+:root[data-theme=light]{--bg:#f6f7f9;--sf:#ffffff;--s2:#eceff4;--bd:#b9c1cd;--tx:#14181f;--mt:#465060;--ac:#d98e04;--ok:#12805a;--er:#c62828;color-scheme:light}
+:root[data-theme=light] .guide{background:linear-gradient(135deg,#fff1cf,#ffffff)}
+:root[data-theme=light] .go{box-shadow:0 4px 14px rgba(217,142,4,.35)}
+</style>
+</head>
+<body>
+<div id="lock"><div>
+  <img src="icon-192.png" alt="" width="72" height="72" style="border-radius:16px">
+  <h1 style="font-size:24px">Torre de Comando</h1>
+  <p class="mt" id="lm">Crea una contraseña para proteger tus datos. La escribirás cada vez que abras la app. Anótala en un lugar seguro: no se puede recuperar.</p>
+  <input id="pass" type="password" placeholder="Tu contraseña (mínimo 8 caracteres)" autocomplete="current-password">
+  <input id="pass2" type="password" placeholder="Escribe la misma contraseña otra vez" style="display:none">
+  <button class="b p go" id="unlock">🔓 Entrar</button>
+  <button class="chip tgl" type="button" style="margin-top:10px"></button>
+  <div id="le" class="err mt"></div>
+</div></div>
+
+<header><h1><img src="icon-192.png" alt="" width="30" height="30" style="border-radius:7px;vertical-align:middle;margin-right:8px">Torre de Comando</h1><span style="display:flex;align-items:center;gap:10px"><span class="mt" id="st"></span><button class="chip tgl" type="button" aria-label="Cambiar entre modo oscuro y claro"></button></span></header>
+<main>
+<section class="tab on" id="t-hub">
+  <div class="guide"><h2 style="margin-top:0">👋 Modo Guía Fácil</h2>
+    <p class="help" style="margin:0 0 6px">Sigue estos pasos en orden. Es muy sencillo.</p>
+    <ol class="steps">
+      <li><div><b>1° Configura tus accesos</b><div class="help" id="g1"></div></div><button class="b sm" data-go="set">Ir al Paso 1</button></li>
+      <li><div><b>2° Agrega tus productos</b><div class="help" id="g2"></div></div><button class="b sm" data-go="crm">Ir al Paso 2</button></li>
+      <li><div><b>3° Haz tus consultas a la IA</b><div class="help">Escribe tu pregunta aquí abajo, o pide consejo completo en el Paso 4.</div></div><button class="b sm" data-go="con">Ir al Paso 4</button></li>
+    </ol></div>
+  <button class="b p go nokey" data-go="set" style="display:none">👉 Haz clic aquí para configurar tu primera IA antes de empezar</button>
+  <h2>💬 Paso 3: Pregunta Rápida</h2>
+  <p class="help">Escribe tu duda como si hablaras con una persona. Todos tus asistentes de IA te responderán.</p>
+  <textarea id="hq" placeholder="Ejemplo: ¿Cuánto debo ganar como mínimo al vender una lámpara LED?"></textarea>
+  <button class="b p go" id="hsend">🔍 Consultar ahora</button>
+  <div id="hres"></div>
+  <button class="b" id="h2c" style="display:none">🧠 Llevar esta pregunta al Consejo de Negocio</button>
+</section>
+
+<section class="tab" id="t-con">
+  <button class="b p go nokey" data-go="set" style="display:none">👉 Haz clic aquí para configurar tu primera IA antes de empezar</button>
+  <h2>🧠 Paso 4: Pedir Consejo de Negocio</h2>
+  <p class="help">Cuéntanos qué negocio quieres evaluar. Varios asistentes opinarán, se revisarán entre sí y te darán una decisión final.</p>
+  <textarea id="cq" placeholder="Ejemplo: ¿Conviene importar lámparas LED desde Alibaba y venderlas en mi tienda?"></textarea>
+  <label>¿Quién da la decisión final?</label><p class="help">Elige cuál de tus asistentes escribe la conclusión.</p><select id="judge"></select>
+  <button class="b p go" id="convene">🧠 Convocar al Consejo</button>
+  <div id="cr"></div>
+  <div id="cact" style="display:none">
+    <button class="b" id="csave">💾 Guardar este consejo</button>
+    <button class="b" id="cship">🛒 Enviar a mi tienda Shopify (borrador)</button>
+    <button class="b" id="cjson">📤 Descargar la decisión</button>
+  </div>
+</section>
+
+<section class="tab" id="t-crm">
+  <h2>📦 Paso 2: Registrar Producto</h2>
+  <p class="help">Elige una lista, llena los datos y toca el botón dorado. Todo se guarda en tu dispositivo.</p>
+  <div class="chips" id="ctabs"></div>
+  <div class="card" id="cform"></div>
+  <div id="clist"></div>
+  <h2>📤 Descargar mi lista</h2><p class="help">Guarda la lista que estás viendo en tu teléfono o computadora.</p>
+  <div class="row" style="flex-wrap:wrap"><button class="b sm" data-x="csv">📄 Para Excel (CSV)</button><button class="b sm" data-x="xls">📊 Excel</button><button class="b sm" data-x="json">💾 Copia de seguridad</button></div>
+  <h2>🛒 Mi tienda y búsqueda de proveedores</h2><p class="help">Primero guarda tus datos de Shopify en el Paso 1.</p>
+  <div class="row" style="flex-wrap:wrap"><button class="b sm" data-sh="products">📦 Ver mis productos</button><button class="b sm" data-sh="orders">🧾 Ver mis pedidos</button><button class="b sm" data-sh="inventory">📊 Ver mi inventario</button></div>
+  <input id="alq" placeholder="Ejemplo: lámpara LED"><p class="help">Escribe qué producto quieres encontrar en Alibaba.</p>
+  <button class="b" id="alGo">🔎 Buscar en Alibaba</button>
+  <pre id="out">Aquí aparecerán los resultados.</pre>
+</section>
+
+<section class="tab" id="t-set">
+  <h2>🔑 Paso 1: Guardar mis llaves y cuentas</h2>
+  <p class="help">Aquí guardas los datos que te dan ChatGPT, Gemini, Claude, Shopify y otros servicios. Se guardan protegidos y solo en este dispositivo.</p>
+  <h2>🤖 Mis asistentes de IA</h2>
+  <div id="pl"></div>
+  <button class="b p go" id="padd">➕ Añadir un asistente de IA</button>
+  <div class="card" id="pf" style="display:none">
+    <label>Nombre</label><input id="f-name"><p class="help">Como quieras llamarlo. Ejemplo: Mi Asistente de Precios</p>
+    <label>Empresa del servicio</label><select id="f-type"><option value="openai">ChatGPT, DeepSeek, OpenRouter (tipo OpenAI)</option><option value="gemini">Google Gemini</option><option value="claude">Claude (Anthropic)</option></select><p class="help">Elige quién te dio la llave.</p>
+    <label>Dirección del servicio (opcional)</label><input id="f-url" autocapitalize="off"><p class="help">Déjalo vacío si no sabes qué poner.</p>
+    <label>Llave secreta (API key)</label><input id="f-key" type="password" autocomplete="off"><p class="help">Pega aquí la clave secreta que te da el servicio.</p>
+    <label>Modelo</label><input id="f-model" autocapitalize="off"><p class="help">Ejemplo: gpt-4o, gemini-2.5-pro o claude-sonnet-5-5</p>
+    <label>¿Para qué lo usarás?</label><input id="f-role"><p class="help">Ejemplo: Experto en precios, Redactor de anuncios</p>
+    <button class="b p go" id="fsave">💾 Guardar este asistente</button><button class="b" id="fcancel">Cancelar</button>
+  </div>
+  <h2>🛒 Mi tienda Shopify</h2>
+  <div class="card">
+    <label>Dominio de Shopify</label><input data-k="shop.domain" autocapitalize="off"><p class="help">Ejemplo: mitienda.myshopify.com</p>
+    <label>Admin API token</label><input data-k="shop.token" type="password" autocomplete="off"><p class="help">Pega aquí la clave secreta que te da Shopify</p>
+  </div>
+  <details class="card"><summary>⚙️ Opciones avanzadas (puedes saltarlas al empezar)</summary>
+    <h2>Buscar proveedores en Alibaba</h2>
+    <label>Dirección de consulta (endpoint)</label><input data-k="ali.url" autocapitalize="off"><p class="help">La dirección que te da Alibaba para hacer consultas.</p>
+    <label>Nombre de la función</label><input data-k="ali.method" autocapitalize="off"><p class="help">El nombre de la función de Alibaba que quieres usar.</p>
+    <label>App key</label><input data-k="ali.key" type="password" autocomplete="off"><p class="help">Tu clave pública de Alibaba.</p>
+    <label>App secret</label><input data-k="ali.secret" type="password" autocomplete="off"><p class="help">Tu clave secreta de Alibaba. Se guarda protegida.</p>
+    <label>Tipo de acceso</label><select data-k="ali.auth"><option value="sign">Firma (recomendado)</option><option value="bearer">Con la app key</option><option value="none">Ninguno</option></select><p class="help">Si no sabes cuál elegir, deja “Firma”.</p>
+    <h2>Puente de conexión (proxy)</h2>
+    <label>Dirección de tu puente</label><input data-k="proxy" autocapitalize="off"><p class="help">Es necesario para conectar Shopify y Alibaba. Ejemplo: https://mi-puente.workers.dev</p>
+    <div class="row"><label>Usar el puente también con las IAs</label><span class="sw"><input type="checkbox" data-k="aiProxy"><i></i></span></div>
+  </details>
+  <button class="b p go" id="save">💾 Guardar todo</button>
+  <button class="b" id="lockBtn">🔒 Bloquear la app</button>
+  <button class="b" id="wipe" style="color:var(--er)">🗑️ Borrar todos mis datos</button>
+</section>
+</main>
+<div id="toast"></div>
+<nav><button class="on" data-t="hub">🏠<br>Inicio</button><button data-t="set">🔑<br>Paso 1: Cuentas</button><button data-t="crm">📦<br>Paso 2: Productos</button><button data-t="con">🧠<br>Paso 4: Consejo</button></nav>
+
+<script>
+const $=id=>document.getElementById(id),enc=new TextEncoder(),dec=new TextDecoder();
+const DEF=()=>({cfg:{providers:[],shop:{},ali:{auth:'sign'},proxy:'',aiProxy:false},crm:{products:[],suppliers:[],leads:[],quotes:[],minutes:[]}});
+let db=DEF(),key=null,salt=null,C=null,editId=null,cur='products';
+const SCH={products:['name','sku','cost','price','notes'],suppliers:['name','contact','url','moq','notes'],leads:['name','contact','status','notes'],quotes:['client','item','amount','date','notes'],minutes:['date','req','final']};
+const LBL={products:'Productos',suppliers:'Proveedores',leads:'Clientes interesados',quotes:'Presupuestos',minutes:'Consejos guardados',name:'Nombre',sku:'SKU',cost:'Costo',price:'Precio',notes:'Notas',contact:'Contacto',url:'URL',moq:'MOQ',status:'Estado',client:'Cliente',item:'Artículo',amount:'Monto',date:'Fecha',req:'Requerimiento',final:'Resolución'};
+const HELP={name:'Escribe el nombre',sku:'Código o apodo del producto (Ej: LAMP-01)',cost:'Cuánto te cuesta a ti (solo números)',price:'A cuánto lo vas a vender (solo números)',notes:'Cualquier detalle que quieras recordar',contact:'Teléfono o correo',url:'Dirección web (opcional)',moq:'Cantidad mínima que vende el proveedor',status:'Ejemplo: Nuevo, Interesado, Comprado',client:'Nombre del cliente',item:'Producto del presupuesto',amount:'Monto total (solo números)',date:'Fecha (Ejemplo: 2026-11-03)'};
+const hlp=f=>f==='name'&&cur==='products'?'Nombre del producto (Ej: Lámpara LED de escritorio)':HELP[f]||'';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const g=(o,p)=>p.split('.').reduce((a,k)=>a&&a[k],o);
+const sset=(o,p,v)=>{const a=p.split('.'),l=a.pop();a.reduce((x,k)=>x[k]=x[k]||{},o)[l]=v};
+function toast(m,e){const t=$('toast');t.textContent=(e?'⚠️ ':'✅ ')+m;t.style.borderColor=e?'var(--er)':'var(--ok)';t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',6000)}
+const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))),ub=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const LS={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem(k,v);return true}catch{return false}},del:k=>{try{localStorage.removeItem(k)}catch{}}};
+
+/* ---------- bóveda AES-GCM + PBKDF2 ---------- */
+async function derive(p,s){const m=await crypto.subtle.importKey('raw',enc.encode(p),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:s,iterations:250000,hash:'SHA-256'},m,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function saveV(){const iv=crypto.getRandomValues(new Uint8Array(12));const d=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(JSON.stringify(db)));if(!LS.set('vault2',JSON.stringify({s:b64(salt),iv:b64(iv),d:b64(d)})))throw new Error('No se pudo guardar en este navegador.')}
+async function openV(p){const v=JSON.parse(LS.get('vault2'));salt=ub(v.s);key=await derive(p,salt);const x=JSON.parse(dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:ub(v.iv)},key,ub(v.d))));const d=DEF();db={cfg:{...d.cfg,...x.cfg},crm:{...d.crm,...x.crm}}}
+const has=!!LS.get('vault2');
+if(!has){$('pass2').style.display='block'}else $('lm').textContent='Escribe tu contraseña para entrar.';
+if(!(window.crypto&&crypto.subtle))$('le').textContent='El cifrado requiere HTTPS. Abre la app desde tu dirección de GitHub Pages.';
+$('unlock').onclick=async()=>{const p=$('pass').value;$('le').textContent='';
+  try{if(p.length<8)throw new Error('Usa al menos 8 caracteres.');
+    if(has)await openV(p);else{if(p!==$('pass2').value)throw new Error('Las contraseñas no coinciden.');salt=crypto.getRandomValues(new Uint8Array(16));key=await derive(p,salt);await saveV()}
+    $('lock').style.display='none';$('pass').value=$('pass2').value='';init()}catch(x){$('le').textContent=has?'La contraseña no es correcta. Inténtalo otra vez.':x.message}};
+$('pass').onkeydown=e=>{if(e.key==='Enter')$('unlock').click()};
+const persist=async()=>{try{await saveV()}catch(e){toast(e.message,true)}};
+
+/* ---------- red ---------- */
+const JH={'content-type':'application/json'};
+async function req(url,o={},via=false){const c=new AbortController(),t=setTimeout(()=>c.abort(),60000);
+  try{let r;if(via){if(!db.cfg.proxy)throw new Error('Configura la URL del proxy en el Paso 1.');
+      r=await fetch(db.cfg.proxy,{method:'POST',headers:JH,body:JSON.stringify({url,method:o.method||'GET',headers:o.headers||{},body:o.body||null}),signal:c.signal})}
+    else r=await fetch(url,{...o,signal:c.signal});
+    const tx=await r.text();let j;try{j=JSON.parse(tx)}catch{j=tx}
+    if(!r.ok)throw new Error('HTTP '+r.status+': '+(typeof j==='string'?j:JSON.stringify(j.error||j)).slice(0,300));return j}
+  catch(e){throw new Error(e.name==='AbortError'?'Tiempo agotado (60 s).':e.name==='TypeError'?'Error de red o CORS. Prueba con el proxy.':e.message)}finally{clearTimeout(t)}}
+
+/* ---------- proveedores de IA ---------- */
+async function callAI(p,prompt){
+  if(!p.key)throw new Error('Falta la API key de '+p.name+'.');
+  const sys='Eres '+(p.role||'asesor comercial')+' en un consejo de e-commerce. Responde en español, con cifras y sin relleno.',v=db.cfg.aiProxy;
+  if(p.type==='gemini'){const j=await req(p.url||'https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(p.model)+':generateContent',{method:'POST',headers:{...JH,'x-goog-api-key':p.key},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:[{parts:[{text:prompt}]}]})},v);return j.candidates[0].content.parts.map(x=>x.text||'').join('')}
+  if(p.type==='claude'){const j=await req(p.url||'https://api.anthropic.com/v1/messages',{method:'POST',headers:{...JH,'x-api-key':p.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:p.model,max_tokens:1800,system:sys,messages:[{role:'user',content:prompt}]})},v);return j.content.filter(b=>b.type==='text').map(b=>b.text).join('')}
+  const j=await req(p.url||'https://api.openai.com/v1/chat/completions',{method:'POST',headers:{...JH,authorization:'Bearer '+p.key},body:JSON.stringify({model:p.model,messages:[{role:'system',content:sys},{role:'user',content:prompt}]})},v);return j.choices[0].message.content}
+const act=()=>db.cfg.providers.filter(p=>p.on);
+const round=(ps,fn)=>Promise.all(ps.map(async p=>{try{return[p.id,{t:await fn(p)}]}catch(e){return[p.id,{e:e.message}]}}));
+const pname=id=>{const p=db.cfg.providers.find(x=>x.id===id);return p?p.name+' · '+(p.role||'sin rol'):id};
+const card=(id,r)=>'<div class="card"><b>'+esc(pname(id))+'</b><div class="res '+(r.e?'err':'')+'">'+esc(r.e||r.t)+'</div></div>';
+
+/* ---------- navegación ---------- */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>go(b.dataset.t));
+function go(t){document.querySelectorAll('nav button,.tab').forEach(x=>x.classList.remove('on'));document.querySelector('nav [data-t='+t+']').classList.add('on');$('t-'+t).classList.add('on');document.querySelector('main').scrollTop=0}
+
+/* ---------- Hub ---------- */
+$('hsend').onclick=async()=>{const q=$('hq').value.trim(),ps=act();if(!q)return toast('Escribe una consulta.',true);if(!ps.length)return noAI();
+  $('hsend').disabled=true;$('hres').innerHTML='<p class="mt">Consultando a '+ps.length+' modelo(s)…</p>';
+  const r=await round(ps,p=>callAI(p,q));$('hres').innerHTML=r.map(([id,x])=>card(id,x)).join('');$('h2c').style.display='block';$('hsend').disabled=false};
+$('h2c').onclick=()=>{$('cq').value=$('hq').value;go('con')};
+
+/* ---------- Sala de Consejo ---------- */
+function rend(){if(!C)return;let h='';
+  const sec=(t,o)=>Object.keys(o).length?'<h2>'+t+'</h2>'+Object.entries(o).map(([i,r])=>card(i,r)).join(''):'';
+  h+=sec('Ronda 1 · Propuestas iniciales',C.r1)+sec('Ronda 2 · Crítica cruzada',C.r2);
+  if(C.msg)h+='<p class="mt">'+esc(C.msg)+'</p>';
+  if(C.fin)h+='<h2>Ronda 3 · Dictamen final</h2><div class="card"><div class="res" style="max-height:none">'+esc(C.fin)+'</div></div>';
+  $('cr').innerHTML=h;$('cact').style.display=C.fin?'block':'none'}
+const ok=(o)=>Object.keys(o).filter(i=>o[i].t);
+const others=(o,self)=>ok(o).filter(i=>i!==self).map(i=>'### '+pname(i)+'\n'+o[i].t).join('\n\n');
+$('convene').onclick=async()=>{const q=$('cq').value.trim(),ps=act();
+  if(!q)return toast('Escribe el requerimiento.',true);if(ps.length<1)return noAI();
+  const jp=db.cfg.providers.find(p=>p.id===$('judge').value)||ps[0];
+  C={q,r1:{},r2:{},fin:'',json:null,msg:'Ronda 1 en curso…'};$('convene').disabled=true;rend();
+  try{
+    (await round(ps,p=>callAI(p,'Requerimiento del consejo:\n'+q+'\n\nDa tu diagnóstico según tu rol: viabilidad, riesgos, precios y márgenes, y recomendación concreta.'))).forEach(([i,r])=>C.r1[i]=r);
+    const g1=ps.filter(p=>C.r1[p.id].t);if(!g1.length)throw new Error('Ninguna IA respondió en la Ronda 1. Revisa las claves y los errores.');
+    if(g1.length>1){C.msg='Ronda 2 en curso…';rend();
+      (await round(g1,p=>callAI(p,'Requerimiento original:\n'+q+'\n\nPropuestas de tus colegas:\n'+others(C.r1,p.id)+'\n\nCritícalas desde tu rol: señala errores de precios, margen, costos o código, y propón mejoras concretas.'))).forEach(([i,r])=>C.r2[i]=r)}
+    C.msg='Dictamen final en curso…';rend();
+    const all=ok(C.r1).map(i=>'### '+pname(i)+'\n'+C.r1[i].t).join('\n\n'),cr=others(C.r2,'');
+    C.fin=await callAI(jp,'Eres el presidente del consejo. Requerimiento:\n'+q+'\n\nPropuestas:\n'+all+'\n\nCríticas cruzadas:\n'+(cr||'(no hubo)')+'\n\nRedacta la RESOLUCIÓN FINAL UNIFICADA: decisión, conclusiones, riesgos y pasos a seguir numerados. Al final añade un bloque ```json con {"title":"","body_html":"","tags":[],"price":"0.00","vendor":"","product_type":""} para la ficha de Shopify (si no aplica, usa {}).');
+    const m=C.fin.match(/```json\s*([\s\S]*?)```/g);if(m){try{C.json=JSON.parse(m[m.length-1].replace(/```json|```/g,''))}catch{}}
+    C.msg='';toast('¡El Consejo terminó! Revisa la decisión más abajo.')
+  }catch(e){C.msg='';toast(e.message,true)}
+  $('convene').disabled=false;rend()};
+$('csave').onclick=async()=>{db.crm.minutes.push({id:uid(),date:new Date().toISOString().slice(0,16).replace('T',' '),req:C.q,final:C.fin});await persist();toast('¡Consejo guardado con éxito!');if(cur==='minutes')crm()};
+$('cjson').onclick=()=>dl(JSON.stringify({requerimiento:C.q,ronda1:C.r1,ronda2:C.r2,resolucion:C.fin,ficha:C.json},null,2),'resolucion.json','application/json');
+$('cship').onclick=()=>draft(C.json);
+
+/* ---------- Shopify / Alibaba ---------- */
+const shReq=(path,o={})=>{const s=db.cfg.shop;if(!s.domain||!s.token)throw new Error('Configura dominio y token de Shopify en el Paso 1.');
+  return req('https://'+s.domain.replace(/^https?:\/\//,'').replace(/\/$/,'')+'/admin/api/2025-01'+path,{...o,headers:{...JH,'x-shopify-access-token':s.token}},true)};
+async function draft(p){if(!p||!p.title)return toast('No hay una ficha válida con título.',true);
+  if(!confirm('Crear “'+p.title+'” como borrador en Shopify.'))return;
+  try{const j=await shReq('/products.json',{method:'POST',body:JSON.stringify({product:{title:p.title,body_html:p.body_html||'',vendor:p.vendor||'',product_type:p.product_type||'',tags:(p.tags||[]).join(','),status:'draft',variants:[{price:String(p.price||'0.00')}]}})});toast('¡Listo! El borrador ya está en tu tienda Shopify.')}catch(e){toast(e.message,true)}}
+document.querySelectorAll('[data-sh]').forEach(b=>b.onclick=async()=>{const k=b.dataset.sh,o=$('out');o.textContent='Cargando…';
+  try{if(k==='products'){const j=await shReq('/products.json?limit=10&fields=title,status,variants');o.textContent=j.products.map(p=>p.title+' ['+p.status+']').join('\n')||'Sin productos.'}
+    if(k==='orders'){const j=await shReq('/orders.json?status=any&limit=10&fields=name,total_price,currency,financial_status,fulfillment_status');o.textContent=j.orders.map(x=>x.name+' · '+x.total_price+' '+x.currency+' · '+x.financial_status+' · '+(x.fulfillment_status||'sin enviar')).join('\n')||'Sin pedidos.'}
+    if(k==='inventory'){const j=await shReq('/products.json?limit=20&fields=title,variants');o.textContent=j.products.map(p=>p.title+': '+p.variants.map(v=>v.inventory_quantity).join(', ')+' uds').join('\n')||'Sin datos.'}}
+  catch(e){o.textContent='Error: '+e.message}});
+$('alGo').onclick=async()=>{const q=$('alq').value.trim(),a=db.cfg.ali,o=$('out');if(!q)return toast('Escribe una palabra clave.',true);
+  try{if(!a.url)throw new Error('Configura el endpoint de Alibaba en el Paso 1.');o.textContent='Buscando…';const P={...(a.method?{method:a.method}:{}),...(a.key?{app_key:a.key}:{}),keyword:q};let h={};
+    if(a.auth==='sign'){if(!a.key||!a.secret)throw new Error('Faltan app key y secret.');P.timestamp=String(Date.now());P.sign_method='sha256';
+      const hk=await crypto.subtle.importKey('raw',enc.encode(a.secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+      P.sign=[...new Uint8Array(await crypto.subtle.sign('HMAC',hk,enc.encode(Object.keys(P).sort().map(k=>k+P[k]).join(''))))].map(x=>x.toString(16).padStart(2,'0')).join('').toUpperCase()}
+    if(a.auth==='bearer')h.authorization='Bearer '+a.key;
+    o.textContent=JSON.stringify(await req(a.url+(a.url.includes('?')?'&':'?')+new URLSearchParams(P),{method:'GET',headers:h},true),null,2)}catch(e){o.textContent='Error: '+e.message}};
+
+/* ---------- CRM y exportación ---------- */
+function crm(){$('ctabs').innerHTML=Object.keys(SCH).map(k=>'<button class="chip '+(k===cur?'on':'')+'" data-c="'+k+'">'+LBL[k]+' ('+db.crm[k].length+')</button>').join('');
+  $('cform').style.display=cur==='minutes'?'none':'block';
+  $('cform').innerHTML=SCH[cur].map(f=>'<label>'+LBL[f]+'</label><input data-f="'+f+'"'+(['cost','price','amount','moq'].includes(f)?' inputmode="decimal"':'')+'><p class="help">'+hlp(f)+'</p>').join('')+'<button class="b p go" id="cadd">➕ Añadir '+(cur==='products'?'producto':'a la lista')+'</button>';
+  $('clist').innerHTML=db.crm[cur].map(r=>'<div class="card"><b>'+esc(r[SCH[cur][0]])+'</b><div class="mt">'+SCH[cur].slice(1).map(f=>r[f]?LBL[f]+': '+esc(String(r[f]).slice(0,140)):'').filter(Boolean).join(' · ')+'</div><button class="b sm" data-del="'+r.id+'">🗑️ Eliminar</button>'+(cur==='products'?'<button class="b sm" data-ship="'+r.id+'">🛒 Enviar a Shopify</button>':'')+(cur==='minutes'?'<button class="b sm" data-view="'+r.id+'">👁️ Ver</button>':'')+'</div>').join('')||'<p class="mt">Todavía no hay nada aquí. Llena el formulario de arriba y toca el botón dorado.</p>';guide()}
+$('ctabs').onclick=e=>{if(e.target.dataset.c){cur=e.target.dataset.c;crm()}};
+$('cform').onclick=async e=>{if(e.target.id!=='cadd')return;const r={id:uid()};$('cform').querySelectorAll('[data-f]').forEach(i=>r[i.dataset.f]=i.value.trim());
+  if(!r[SCH[cur][0]])return toast('Falta escribir: '+LBL[SCH[cur][0]]+'.',true);db.crm[cur].push(r);await persist();crm();toast(cur==='products'?'¡Producto guardado con éxito!':'¡Guardado con éxito!')};
+$('clist').onclick=async e=>{const d=e.target.dataset,L=db.crm[cur];
+  if(d.del&&confirm('¿Eliminar este registro?')){db.crm[cur]=L.filter(r=>r.id!==d.del);await persist();crm();toast('Registro eliminado.')}
+  if(d.ship){const r=L.find(x=>x.id===d.ship);draft({title:r.name,body_html:r.notes,price:r.price})}
+  if(d.view){$('out').textContent=L.find(x=>x.id===d.view).final;$('out').scrollIntoView({behavior:'smooth'})}};
+function dl(txt,name,mime){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+txt],{type:mime+';charset=utf-8'}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
+document.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{const f=SCH[cur],L=db.crm[cur];if(!L.length)return toast('No hay registros que exportar.',true);const k=b.dataset.x,n='crm-'+cur;
+  if(k==='json')return dl(JSON.stringify(L,null,2),n+'.json','application/json');
+  if(k==='csv')return dl([f.map(x=>LBL[x])].concat(L.map(r=>f.map(x=>r[x]??''))).map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n'),n+'.csv','text/csv');
+  const row=a=>'<Row>'+a.map(c=>'<Cell><Data ss:Type="String">'+esc(c)+'</Data></Cell>').join('')+'</Row>';
+  dl('<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="'+LBL[cur]+'"><Table>'+row(f.map(x=>LBL[x]))+L.map(r=>row(f.map(x=>r[x]??''))).join('')+'</Table></Worksheet></Workbook>',n+'.xls','application/vnd.ms-excel')});
+
+/* ---------- Bóveda: proveedores y ajustes ---------- */
+function plist(){$('pl').innerHTML=db.cfg.providers.map(p=>'<div class="card"><div class="row"><div><b>'+esc(p.name)+'</b><div class="mt">'+esc(p.type)+' · '+esc(p.model)+' · '+esc(p.role||'sin rol')+'</div></div><span class="sw"><input type="checkbox" data-on="'+p.id+'"'+(p.on?' checked':'')+'><i></i></span></div><button class="b sm" data-ed="'+p.id+'">Editar</button><button class="b sm" data-rm="'+p.id+'">Eliminar</button></div>').join('')||'<p class="mt">Todavía no tienes ningún asistente. Toca el botón dorado de abajo para añadir el primero.</p>';
+  $('judge').innerHTML=db.cfg.providers.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join('');
+  const n=act().length;$('st').textContent=n+' IA activa'+(n===1?'':'s');guide()}
+$('padd').onclick=()=>openF(null);$('fcancel').onclick=()=>$('pf').style.display='none';
+function openF(id){editId=id;const p=db.cfg.providers.find(x=>x.id===id)||{type:'openai'};
+  ['name','type','url','key','model','role'].forEach(k=>$('f-'+k).value=p[k]||'');$('pf').style.display='block';$('pf').scrollIntoView({behavior:'smooth'})}
+$('fsave').onclick=async()=>{const p={id:editId||uid(),on:true};['name','type','url','key','model','role'].forEach(k=>p[k]=$('f-'+k).value.trim());
+  if(!p.name||!p.model)return toast('Nombre y modelo son obligatorios.',true);
+  const i=db.cfg.providers.findIndex(x=>x.id===editId);if(i>=0){p.on=db.cfg.providers[i].on;db.cfg.providers[i]=p}else db.cfg.providers.push(p);
+  await persist();$('pf').style.display='none';plist();toast('¡Asistente guardado con éxito!')};
+$('pl').onclick=async e=>{const d=e.target.dataset;if(d.ed)openF(d.ed);
+  if(d.rm&&confirm('¿Eliminar este proveedor?')){db.cfg.providers=db.cfg.providers.filter(p=>p.id!==d.rm);await persist();plist()}};
+$('pl').onchange=async e=>{const id=e.target.dataset.on;if(id){db.cfg.providers.find(p=>p.id===id).on=e.target.checked;await persist();plist()}};
+$('save').onclick=async()=>{document.querySelectorAll('[data-k]').forEach(i=>sset(db.cfg,i.dataset.k,i.type==='checkbox'?i.checked:i.value.trim()));await persist();guide();toast('¡Tus datos se guardaron con éxito y están protegidos!')};
+$('lockBtn').onclick=()=>location.reload();
+$('wipe').onclick=()=>{if(confirm('Se borrarán claves y CRM de este dispositivo. ¿Continuar?')){LS.del('vault2');location.reload()}};
+function init(){document.querySelectorAll('[data-k]').forEach(i=>{const v=g(db.cfg,i.dataset.k);if(i.type==='checkbox')i.checked=!!v;else i.value=v||(i.tagName==='SELECT'?i.options[0].value:'')});plist();crm()}
+function applyTheme(t){document.documentElement.dataset.theme=t;document.querySelector('meta[name=theme-color]').content=t==='light'?'#f6f7f9':'#0e1116';document.querySelectorAll('.tgl').forEach(b=>b.textContent=t==='light'?'🌙 Oscuro':'☀️ Claro')}
+applyTheme(document.documentElement.dataset.theme==='light'?'light':'dark');
+document.querySelectorAll('.tgl').forEach(b=>b.onclick=()=>{const t=document.documentElement.dataset.theme==='light'?'dark':'light';try{localStorage.setItem('theme',t)}catch{}applyTheme(t);toast(t==='light'?'Modo claro activado.':'Modo oscuro activado.')});
+function noAI(){toast('Primero configura tu asistente de IA en el Paso 1.',true);go('set')}
+function guide(){const ready=db.cfg.providers.some(p=>p.key);
+  document.querySelectorAll('.nokey').forEach(b=>b.style.display=ready?'none':'block');
+  $('g1').textContent=ready?'✅ Listo: ya tienes un asistente configurado.':'⏳ Pendiente: guarda tu primera llave de IA.';
+  $('g2').textContent=db.crm.products.length?'✅ Listo: tienes '+db.crm.products.length+' producto(s).':'⏳ Pendiente: registra tu primer producto.'}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-go]');if(t)go(t.dataset.go)});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
